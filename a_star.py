@@ -167,7 +167,7 @@ class AStar():
             day_info = "Day " +  str(stop[1].f // (24*60) + 1)
             print(f"{str(i+1).rjust(len(str(len(route))))}. \t{str(stop[1].last_route.line).rjust(max_length[0])}) [{format_time(stop[1].last_route.departure_minutes).rjust(max_length[2])}] {stop[1].last_stop.name.ljust(max_length[1])} - "
                 f"[{format_time(stop[1].last_route.arrival_minutes)}] {stop[0].name} ({day_info})")
-        print(f'Cost function: {self.stops_records[end].f - time_to_minutes(start_time)}', file=sys.stderr)
+        print(f'Cost function: {self.stops_records[end].g - time_to_minutes(start_time)}', file=sys.stderr)
 
 
 def run(a_start: Stop, b_end: Stop, start_time: str) -> None:
