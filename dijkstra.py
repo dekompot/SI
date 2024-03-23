@@ -106,18 +106,24 @@ class Dijkstra():
                 if self.stops_records[stop].min_arrival_minutes < self.stops_records[curr_stop].min_arrival_minutes:
                     curr_stop = stop
             unseen_stops.remove(curr_stop)
+            # normalize arrival time to 24h
             arrival_minutes_modulo = self.stops_records[curr_stop].min_arrival_minutes % (24*60) 
             for neighbor, routes in self.graph[curr_stop].items():
                 min_arrival_id = -1
                 for i in range(len(routes)):
+                    # take time for a change of line
                     change_fine = 0 if self.stops_records[curr_stop].last_route is not None and routes[i].line == self.stops_records[curr_stop].last_route.line else change_minutes
                     if arrival_minutes_modulo + change_fine <= routes[i].departure_minutes:
                         min_arrival_id = i
                         break
+                # if there are no more this day, take the first one after midnight...
                 min_arrival_minutes = routes[min_arrival_id].arrival_minutes if min_arrival_id > -1 else 24*60+routes[0].arrival_minutes
+                # ...therefore, this is the chosen route id
                 min_arrival_id = max(min_arrival_id,0)
-                min_arrival_minutes += (self.stops_records[curr_stop].min_arrival_minutes // (24*60)) * 24*60 
-                min_arrival_minutes += 0 if routes[min_arrival_id].arrival_minutes > routes[min_arrival_id].departure_minutes else 24*60
+                # derive real cost including days already travelled (anti-prior-normalization)
+                min_arrival_minutes += (self.stops_records[curr_stop].min_arrival_minutes // (24*60)) * 24*60
+                # derive real cost adding day if you were on a road during midnight
+                min_arrival_minutes += 0 if routes[min_arrival_id].arrival_minutes >= routes[min_arrival_id].departure_minutes else 24*60
                 if min_arrival_minutes < self.stops_records[neighbor].min_arrival_minutes:
                     self.stops_records[neighbor].min_arrival_minutes = min_arrival_minutes
                     self.stops_records[neighbor].last_stop = curr_stop
@@ -133,10 +139,12 @@ class Dijkstra():
                 max_length[i] = len(str(element)) if len(str(element)) > max_length[i] else max_length[i]
             temp = temp[1].last_stop, self.stops_records[temp[1].last_stop]
         route.reverse()
+        print(f"From {a_start} at {start_time}:")
         for i, stop in enumerate(route):
             day_info = "Day " +  str(stop[1].min_arrival_minutes // (24*60) + 1)
             print(f"{str(i+1).rjust(len(str(len(route))))}. \t{str(stop[1].last_route.line).rjust(max_length[0])}) [{format_time(stop[1].last_route.departure_minutes).rjust(max_length[2])}] {stop[1].last_stop.name.ljust(max_length[1])} - "
                 f"[{format_time(stop[1].last_route.arrival_minutes)}] {stop[0].name} ({day_info})")
+        print(f'Cost function: {self.stops_records[end].min_arrival_minutes - time_to_minutes(start_time)}', file=sys.stderr)
 
 
 def run(a_start: Stop, b_end: Stop, start_time: str) -> None:
