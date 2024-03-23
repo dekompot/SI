@@ -42,7 +42,7 @@ def time_to_minutes(time_str: str) -> int:
 def format_time(abnormal_time: int) -> str:
     return str(abnormal_time // 60).zfill(2) + ":" + str(abnormal_time % 60).zfill(2)
 
-class AStar():
+class AStarChanges():
     def __init__(self, filename="connection_graph (1).csv") -> None:
         self.logs: List[Tuple[str,float]] = [("start", tm.time())]
         self._log("load start")
@@ -67,17 +67,20 @@ class AStar():
         self.data.drop_duplicates(ignore_index=True, inplace=True)
 
     def _create(self):
-        self.graph: Dict[Stop, Dict[Stop, List[Route]]] = {}
+        self.graph: Dict[Stop, Dict[Stop, Dict[str,List[Route]]]] = {}
         for stop in self.data.itertuples():
             start_stop: Stop = Stop(stop.start_stop, stop.start_stop_lat, stop.start_stop_lon) 
             end_stop: Stop = Stop(stop.end_stop, stop.end_stop_lat, stop.end_stop_lon)
             route: Route = Route(line=stop.line, departure_minutes=time_to_minutes(stop.departure_time), arrival_minutes=time_to_minutes(stop.arrival_time))
             if start_stop not in self.graph.keys():
-                self.graph[start_stop] = {end_stop: [route]}
+                self.graph[start_stop] = {end_stop: {route.line: [route]}}
             elif end_stop in self.graph[start_stop].keys():
-             self.graph[start_stop][end_stop].append(route)
+                if route.line in self.graph[start_stop][end_stop].keys():
+                    self.graph[start_stop][end_stop][route.line].append(route)
+                else:
+                    self.graph[start_stop][end_stop][route.line] = route
             else:
-                self.graph[start_stop][end_stop] = [route] 
+                self.graph[start_stop][end_stop] = {route.line: [route]}
             if end_stop not in self.graph.keys():
                 self.graph[end_stop] = {}
         for stop, neighbors in self.graph.items():
@@ -87,7 +90,7 @@ class AStar():
         if clear_logs:
             self.logs = [("start", tm.time())]
         self._log("proceeding start")
-        self._proceed(a_start, b_end, start_time, AStar.euclidean)
+        self._proceed(a_start, b_end, start_time, AStarChanges.euclidean)
         self._log("proceeding end")
         self._log("printing start")
         self._print(a_start,b_end,start_time)
@@ -171,7 +174,7 @@ class AStar():
 
 
 def run(a_start: Stop, b_end: Stop, start_time: str) -> None:
-    a = AStar()
+    a = AStarChanges()
     a.run(a_start, b_end, start_time)
     
 if __name__ == '__main__':
