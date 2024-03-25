@@ -22,3 +22,4 @@ class Solution:
             self.a_star_changes.run(a,b,start_time)
         else:
             print("Wrong criteria! It must be 't' or 'p'",file=sys.stderr)
+            

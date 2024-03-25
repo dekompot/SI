@@ -1,9 +1,7 @@
-import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
-from tools import Stop, Route, format_time, time_to_minutes
-from datetime import time
+from tools import Stop, Route, format_time, time_to_minutes, Algorithm, change_minutes
 import time as tm
 import sys
 
@@ -13,29 +11,9 @@ class StopRecord():
     last_stop: Stop
     last_route: Route
 
-class Dijkstra():
+class Dijkstra(Algorithm):
     def __init__(self, filename="connection_graph (1).csv") -> None:
-        self.logs: List[Tuple[str,float]] = [("start", tm.time())]
-        self._log("load start")
-        self._load(filename)
-        self._log("load end")
-        self._log("graph creation start")
-        self._create()
-        self._log("graph creation end")
-        
-    def _log(self, label: str) -> None:
-        self.logs.append((label, tm.time()))
-        
-    def _print_logs(self) -> None:
-        for i in range(len(self.logs)):
-            label, timestamp = self.logs[i]
-            if i % 2 == 0:
-                print(f"--- {label}: {timestamp - self.logs[0][1]} seconds since start \n\t{timestamp - self.logs[max(i-1,0)][1]} seconds since {self.logs[max(i-1,0)][0]}", file=sys.stderr)
-        
-    def _load(self, filename):
-        self.data = pd.read_csv(filename, low_memory=False)
-        self.data.set_index(keys='Unnamed: 0', inplace=True)
-        self.data.drop_duplicates(ignore_index=True, inplace=True)
+        super().__init__(filename)
 
     def _create(self):
         self.graph: Dict[Stop, Dict[Stop, List[Route]]] = {}
@@ -54,19 +32,8 @@ class Dijkstra():
         for stop, neighbors in self.graph.items():
             for _, routes in neighbors.items():
                 routes.sort(key=lambda rt: rt.arrival_minutes)   
-    def run(self, a_start: Stop, b_end: Stop, start_time: str, clear_logs: bool= True):
-        if clear_logs:
-            self.logs = [("start", tm.time())]
-        self._log("proceeding start")
-        self._proceed(a_start, start_time)
-        self._log("proceeding end")
-        self._log("printing start")
-        self._print(a_start,b_end,start_time)
-        self._log("printing end")
-        self._print_logs()
-    
-    def _proceed(self, a_start: Stop, start_time: str):
-        change_minutes = 1
+                
+    def _proceed(self, a_start: Stop, _, start_time: str):
         time = time_to_minutes(start_time)
         self.stops_records: Dict[Stop, StopRecord] = {} 
         for key in self.graph.keys():

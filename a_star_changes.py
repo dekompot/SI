@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import List, Dict, Tuple, Callable
 import time as tm
-from tools import Stop, Route, StopLine, format_time, time_to_minutes
+from tools import Stop, Route, StopLine, format_time, time_to_minutes, Algorithm, change_minutes
 from dataclasses import dataclass
 import sys
 from geopy.distance import geodesic
@@ -16,29 +16,9 @@ class StopRecord():
 
 further_charge = 0.1
 
-class AStarChanges():
+class AStarChanges(Algorithm):
     def __init__(self, filename="connection_graph (1).csv") -> None:
-        self.logs: List[Tuple[str,float]] = [("start", tm.time())]
-        self._log("load start")
-        self._load(filename)
-        self._log("load end")
-        self._log("graph creation start")
-        self._create()
-        self._log("graph creation end")
-        
-    def _log(self, label: str) -> None:
-        self.logs.append((label, tm.time()))
-        
-    def _print_logs(self) -> None:
-        for i in range(len(self.logs)):
-            label, timestamp = self.logs[i]
-            if i % 2 == 0:
-                print(f"--- {label}: {timestamp - self.logs[0][1]} seconds since start \n\t{timestamp - self.logs[max(i-1,0)][1]} seconds since {self.logs[max(i-1,0)][0]}", file=sys.stderr)
-        
-    def _load(self, filename):
-        self.data = pd.read_csv(filename, low_memory=False)
-        self.data.set_index(keys='Unnamed: 0', inplace=True)
-        self.data.drop_duplicates(ignore_index=True, inplace=True)
+        super().__init__(filename)
 
     def _create(self):
         self.graph: Dict[Stop, Dict[Stop, Dict[str,List[Route]]]] = {}
@@ -65,18 +45,7 @@ class AStarChanges():
         for stop, neighbors in self.graph.items():
             for _, lines in neighbors.items():
                 for _, routes in lines.items():
-                    routes.sort(key=lambda rt: rt.arrival_minutes)       
-                
-    def run(self, a_start: Stop, b_end: Stop, start_time: str, clear_logs: bool= True):
-        if clear_logs:
-            self.logs = [("start", tm.time())]
-        self._log("proceeding start")
-        self._proceed(a_start, b_end, start_time)
-        self._log("proceeding end")
-        self._log("printing start")
-        self._print(a_start,b_end,start_time)
-        self._log("printing end")
-        self._print_logs()
+                    routes.sort(key=lambda rt: rt.arrival_minutes)            
     
     def approaching(prev_node: Stop, next_node: Stop, end_node: Stop) -> float:
         # charge coming further away from target
@@ -84,8 +53,7 @@ class AStarChanges():
         next_dist = geodesic((next_node.latitude,next_node.longitude), (end_node.latitude,end_node.longitude)).meters
         return 0 if next_dist < prev_dist else further_charge
     
-    def _proceed(self, a_start: Stop, b_end:Stop, start_time: str, heuristic: Callable[...,float] = approaching):
-        change_minutes = 1
+    def _proceed(self, a_start: Stop, b_end:Stop, start_time: str):
         time = time_to_minutes(start_time)
         self.stops_records: Dict[StopLine, StopRecord] = {} 
         unseen_stoplines = []
@@ -125,14 +93,14 @@ class AStarChanges():
                     if new_node not in unseen_stoplines and new_node not in seen_stoplines:
                         unseen_stoplines.append(new_node)
                         self.stops_records[new_node].g = g
-                        self.stops_records[new_node].f = g + heuristic(curr_stopline.stop, new_node.stop, b_end)
+                        self.stops_records[new_node].f = g + AStarChanges.approaching(curr_stopline.stop, new_node.stop, b_end)
                         self.stops_records[new_node].last_stopline = curr_stopline
                         self.stops_records[new_node].last_route = routes[min_arrival_id]
                         self.stops_records[new_node].time = time_
                     else:
                         if g < self.stops_records[new_node].g:
                             self.stops_records[new_node].g = g
-                            self.stops_records[new_node].f = g + heuristic(curr_stopline.stop, new_node.stop, b_end)
+                            self.stops_records[new_node].f = g + AStarChanges.approaching(curr_stopline.stop, new_node.stop, b_end)
                             self.stops_records[new_node].last_stopline = curr_stopline
                             self.stops_records[new_node].last_route = routes[min_arrival_id]
                             self.stops_records[new_node].time = time_
