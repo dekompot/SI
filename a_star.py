@@ -1,46 +1,9 @@
-import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple, Callable
-from dataclasses import dataclass
-from datetime import time
 import time as tm
 import sys
 from geopy.distance import geodesic
-
-class Stop:
-    def __init__(self, name: str, latitude: float, longitude: float) -> None:
-        self.name = name
-        self.latitude = latitude
-        self.longitude = longitude
-    def __str__(self) -> str:
-        return self.name + "[" + str(self.latitude) + ", " + str(self.longitude) + "]"
-    def __repr__(self) -> str:
-        return self.name + ", " + str(self.latitude) + "," + str(self.longitude)
-    def __hash__(self) -> int:
-        return hash(str(self.name))
-    def __eq__(self, __value: object) -> bool:
-        return isinstance(__value, Stop) and str(self.name) == str(__value.name)
-    
-@dataclass
-class Route:
-    line: str
-    departure_minutes: int
-    arrival_minutes: int
-
-@dataclass
-class StopRecord():
-    f: int
-    g: int
-    last_stop: Stop
-    last_route: Route
-    
-def time_to_minutes(time_str: str) -> int:
-    time_arr = time_str.split(':')
-    hour=int(time_arr[0])
-    minute=int(time_arr[1])
-    return 60 * (hour % 24) + minute
-def format_time(abnormal_time: int) -> str:
-    return str(abnormal_time // 60).zfill(2) + ":" + str(abnormal_time % 60).zfill(2)
+from tools import Stop, Route, StopRecord, format_time, time_to_minutes
 
 class AStar():
     def __init__(self, filename="connection_graph (1).csv") -> None:
@@ -90,6 +53,7 @@ class AStar():
         self._proceed(a_start, b_end, start_time, AStar.euclidean)
         self._log("proceeding end")
         self._log("printing start")
+        print(b_end)
         self._print(a_start,b_end,start_time)
         self._log("printing end")
         self._print_logs()
@@ -153,7 +117,7 @@ class AStar():
                             seen_stops.remove(neighbor)
                     
     def _print(self, a_start: Stop, b_end: Stop, start_time: str) -> None:
-        temp = b_end, self.stops_records[end]
+        temp = b_end, self.stops_records[b_end]
         route: List[Tuple[Stop, StopRecord]] = []
         max_length = [0,0,0,0,0]
         while temp[1].last_stop is not None:
