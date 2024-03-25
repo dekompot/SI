@@ -79,13 +79,15 @@ class Dijkstra(Algorithm):
                 max_length[i] = len(str(element)) if len(str(element)) > max_length[i] else max_length[i]
             temp = temp[1].last_stop, self.stops_records[temp[1].last_stop]
         route.reverse()
-        print(f"From {a_start} at {start_time}:")
+        print(f"From {a_start.name} at {start_time}:")
         for i, stop in enumerate(route):
             day_info = "Day " +  str(stop[1].min_arrival_minutes // (24*60) + 1)
             print(f"{str(i+1).rjust(len(str(len(route))))}. \t{str(stop[1].last_route.line).rjust(max_length[0])}) [{format_time(stop[1].last_route.departure_minutes).rjust(max_length[2])}] {stop[1].last_stop.name.ljust(max_length[1])} - "
                 f"[{format_time(stop[1].last_route.arrival_minutes)}] {stop[0].name} ({day_info})")
-        print(f'Cost function: {self.stops_records[b_end].min_arrival_minutes - time_to_minutes(start_time)}', file=sys.stderr)
+        print(f'Cost function: {self._cost(a_start, b_end, start_time)}', file=sys.stderr)
 
+    def _cost(self, a_start: Stop, b_end: Stop, start_time: str) -> int:
+        return self.stops_records[b_end].min_arrival_minutes - time_to_minutes(start_time)
 
 def run(a_start: Stop, b_end: Stop, start_time: str) -> None:
     d = Dijkstra()
