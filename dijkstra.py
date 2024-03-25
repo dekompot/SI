@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
-from tools import Stop, Route, StopLine, format_time, time_to_minutes
+from tools import Stop, Route, format_time, time_to_minutes
 from datetime import time
 import time as tm
 import sys
@@ -54,7 +54,7 @@ class Dijkstra():
         for stop, neighbors in self.graph.items():
             for _, routes in neighbors.items():
                 routes.sort(key=lambda rt: rt.arrival_minutes)   
-    def run(self, a_start: Stop, b_end: Stop, start_time: str, clear_logs: bool= False):
+    def run(self, a_start: Stop, b_end: Stop, start_time: str, clear_logs: bool= True):
         if clear_logs:
             self.logs = [("start", tm.time())]
         self._log("proceeding start")
@@ -117,7 +117,7 @@ class Dijkstra():
             day_info = "Day " +  str(stop[1].min_arrival_minutes // (24*60) + 1)
             print(f"{str(i+1).rjust(len(str(len(route))))}. \t{str(stop[1].last_route.line).rjust(max_length[0])}) [{format_time(stop[1].last_route.departure_minutes).rjust(max_length[2])}] {stop[1].last_stop.name.ljust(max_length[1])} - "
                 f"[{format_time(stop[1].last_route.arrival_minutes)}] {stop[0].name} ({day_info})")
-        print(f'Cost function: {self.stops_records[end].min_arrival_minutes - time_to_minutes(start_time)}', file=sys.stderr)
+        print(f'Cost function: {self.stops_records[b_end].min_arrival_minutes - time_to_minutes(start_time)}', file=sys.stderr)
 
 
 def run(a_start: Stop, b_end: Stop, start_time: str) -> None:

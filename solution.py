@@ -2,21 +2,7 @@ from a_star import AStar
 from a_star_changes import AStarChanges
 from dijkstra import Dijkstra
 import sys
-
-class Stop:
-    def __init__(self, name: str, latitude: float, longitude: float) -> None:
-        self.name = name
-        self.latitude = latitude
-        self.longitude = longitude
-    def __str__(self) -> str:
-        return self.name + "[" + str(self.latitude) + ", " + str(self.longitude) + "]"
-    def __repr__(self) -> str:
-        return self.name + ", " + str(self.latitude) + "," + str(self.longitude)
-    def __hash__(self) -> int:
-        return hash(str(self.name))
-    def __eq__(self, __value: object) -> bool:
-        return isinstance(__value, Stop) and str(self.name) == str(__value.name)
-    
+from tools import Stop
 
 class Solution:
     

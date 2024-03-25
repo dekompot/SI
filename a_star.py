@@ -54,7 +54,7 @@ class AStar():
         for stop, neighbors in self.graph.items():
             for _, routes in neighbors.items():
                 routes.sort(key=lambda rt: rt.arrival_minutes)   
-    def run(self, a_start: Stop, b_end: Stop, start_time: str, clear_logs: bool= False):
+    def run(self, a_start: Stop, b_end: Stop, start_time: str, clear_logs: bool= True):
         if clear_logs:
             self.logs = [("start", tm.time())]
         self._log("proceeding start")
@@ -69,9 +69,9 @@ class AStar():
     def euclidean(next_node: Stop, end_node: Stop) -> float:
         # distance in kilometers / 60 as optimistic velocity in km/h = optimistic time in hours
         # optimistic time in hours * 60 as minutes in an hour = optimistic time in minutes
-        return 60 * geodesic((next_node.latitude,next_node.longitude), (end_node.latitude,end_node.longitude)).kilometers / 60
+        return 60 * geodesic((next_node.latitude,next_node.longitude), (end_node.latitude,end_node.longitude)).kilometers / 120
     
-    def _proceed(self, a_start: Stop, b_end:Stop, start_time: str, heuristic: Callable[[Stop,Stop],float]):
+    def _proceed(self, a_start: Stop, b_end:Stop, start_time: str, heuristic: Callable[[Stop,Stop],float] = euclidean):
         change_minutes = 1
         time = time_to_minutes(start_time)
         self.stops_records: Dict[Stop, StopRecord] = {} 
@@ -139,7 +139,7 @@ class AStar():
             day_info = "Day " +  str(stop[1].f // (24*60) + 1)
             print(f"{str(i+1).rjust(len(str(len(route))))}. \t{str(stop[1].last_route.line).rjust(max_length[0])}) [{format_time(stop[1].last_route.departure_minutes).rjust(max_length[2])}] {stop[1].last_stop.name.ljust(max_length[1])} - "
                 f"[{format_time(stop[1].last_route.arrival_minutes)}] {stop[0].name} ({day_info})")
-        print(f'Cost function: {self.stops_records[end].g - time_to_minutes(start_time)}', file=sys.stderr)
+        print(f'Cost function: {self.stops_records[b_end].g - time_to_minutes(start_time)}', file=sys.stderr)
 
 
 def run(a_start: Stop, b_end: Stop, start_time: str) -> None:

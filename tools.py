@@ -28,14 +28,6 @@ class StopLine:
     def __eq__(self, __value: object) -> bool:
         return isinstance(__value, StopLine) and __value.stop == self.stop and __value.line == self.line
     
-@dataclass
-class StopRecord():
-    f: float
-    g: float
-    last_stopline: StopLine
-    last_route: Route
-    time: int
-    
 def time_to_minutes(time_str: str) -> int:
     time_arr = time_str.split(':')
     hour=int(time_arr[0])

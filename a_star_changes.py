@@ -67,7 +67,7 @@ class AStarChanges():
                 for _, routes in lines.items():
                     routes.sort(key=lambda rt: rt.arrival_minutes)       
                 
-    def run(self, a_start: Stop, b_end: Stop, start_time: str, clear_logs: bool= False):
+    def run(self, a_start: Stop, b_end: Stop, start_time: str, clear_logs: bool= True):
         if clear_logs:
             self.logs = [("start", tm.time())]
         self._log("proceeding start")
