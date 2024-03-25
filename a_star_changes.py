@@ -1,11 +1,20 @@
 import pandas as pd
 from typing import List, Dict, Tuple, Callable
 import time as tm
-from tools import Stop, Route, StopLine, StopRecord, format_time, time_to_minutes
+from tools import Stop, Route, StopLine, format_time, time_to_minutes
+from dataclasses import dataclass
 import sys
 from geopy.distance import geodesic
 
-further_charge = 0.01
+@dataclass
+class StopRecord():
+    f: float
+    g: float
+    last_stopline: StopLine
+    last_route: Route
+    time: int
+
+further_charge = 0.1
 
 class AStarChanges():
     def __init__(self, filename="connection_graph (1).csv") -> None:

@@ -3,7 +3,15 @@ from typing import List, Dict, Tuple, Callable
 import time as tm
 import sys
 from geopy.distance import geodesic
-from tools import Stop, Route, StopRecord, format_time, time_to_minutes
+from tools import Stop, Route, format_time, time_to_minutes
+from dataclasses import dataclass
+
+@dataclass
+class StopRecord():
+    f: int
+    g: int
+    last_stop: Stop
+    last_route: Route
 
 class AStar():
     def __init__(self, filename="connection_graph (1).csv") -> None:

@@ -2,9 +2,16 @@ import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
+from tools import Stop, Route, StopLine, format_time, time_to_minutes
 from datetime import time
 import time as tm
 import sys
+
+@dataclass
+class StopRecord():
+    min_arrival_minutes: int
+    last_stop: Stop
+    last_route: Route
 
 class Dijkstra():
     def __init__(self, filename="connection_graph (1).csv") -> None:
