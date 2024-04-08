@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import sys
 from abc import ABC, abstractmethod
 
-change_minutes = 1
+change_minutes = 0
 
 class Stop:
     def __init__(self, name: str, latitude: float, longitude: float) -> None:
